@@ -16,7 +16,7 @@ pip install -r requirements.txt
 
 ### 2 Download pretrained model 
 
-### 3 Quick prunning
+### 3 Quick pruning
 
 ```bash
 python main.py --ckpt_path=./pretrained/our_modnet.ckpt --ratio 0.5 --threshold 0.5
