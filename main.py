@@ -382,7 +382,7 @@ if __name__ == '__main__':
                         help='Pruning threshold for the adaptive part, for the MobileNetv2 part in the MODNet')
     parser.add_argument('--weight_replace', type=bool, default=False, required=False,
                         help='True or False. It depends on whether to fine-tune or train from scratch after pruning. Warm Tips:It is recommended that the mode can not be enabled, otherwise, try to turn on when the ratio is 0.5 and the threshold is less than 0.6.')
-    parser.add_argument('--verbose', type=bool, default=False, required=False,
+    parser.add_argument('--verbose', type=bool, default=True, required=False,
                         help='Used to print or not the channel changes for each layer of MODNet when weight-place is Ture.')
     args = parser.parse_args()
 
