@@ -13,18 +13,27 @@ def _make_divisible(v, divisor, min_value=None):
     return new_v
 
 
-# 固定比例剪枝
 def get_nums_of_keep_channels(sparsity, initial_channels):
+    """
+    The number of reserved channels is obtained according to a fixed ratio.
+    @param sparsity: User-set pruning ratio
+    @param initial_channels: The output channel of the network layer
+    @return:
+    """
     return int((1 - sparsity) * initial_channels) if initial_channels != 1 else 1
 
 
-# 自适应剪枝，根据threshold计算符合要求的通道
-def compute_weights(m, threshold=0.5):
-    # weight = m.weight.data.abs().numpy()
+def compute_weights(m, threshold):
+    """
+    Adaptive pruning is used to calculate the channels that meet the
+    requirements according to the threshold
+    """
+    assert threshold != 0, "threshold must > 0"
+
     weight = m.abs().numpy()
     L1_norm = np.sum(weight, axis=(1, 2, 3))
     x = sorted(L1_norm, reverse=True)
-    normalized = (x - np.min(x)) / (np.max(x) - np.min(x))  # 归一化，用于绘图
+    normalized = (x - np.min(x)) / (np.max(x) - np.min(x))
 
     idx = 0
     flag = True
@@ -33,10 +42,10 @@ def compute_weights(m, threshold=0.5):
             idx = filter_idx
             flag = False
 
+    nums_keep = None
     per = (idx + 1) / len(normalized)
     if int(per * len(normalized)) != 1:
-        keep_nums = _make_divisible(per * len(normalized), 8)
-        return keep_nums
+        nums_keep = _make_divisible(per * len(normalized), 8)
     else:
-        return 1
-
+        nums_keep = 1
+    return nums_keep
