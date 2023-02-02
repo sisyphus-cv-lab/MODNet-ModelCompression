@@ -1,5 +1,5 @@
 """
-Building model blocks for pruning, as follow:
+Building modnet blocks for pruning, as follow:
 1、CBR: Conv + BatchNorm + Relu
 2、CIBRelu: Conv + InstanceNorm+ Relu
 3、LBlock: Linear
