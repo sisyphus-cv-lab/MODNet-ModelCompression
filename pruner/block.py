@@ -1,9 +1,9 @@
 """
-用于构建模型的网络块，如下：
-1.CBR（Conv + BatchNorm + Relu）
-2.CIBRelu（Conv + InstanceNorm+ Relu）
-3.LBlock（Linear）
-4.InvertResBlock
+Building model blocks for pruning, as follow:
+1、CBR: Conv + BatchNorm + Relu
+2、CIBRelu: Conv + InstanceNorm+ Relu
+3、LBlock: Linear
+4、InvertResBlock
 """
 
 
@@ -47,7 +47,6 @@ class LBlock(BasicBlock):
         self.output_channel = self.state_dict[0].shape[0]
 
 
-# HR branch中，尽管如conv_hr2x是包含层级关系的，但每一层依旧可以被提取
 class CIBRelu(BasicBlock):
     def __init__(self, layer_name: str, state_dict: list):
         super().__init__(layer_name, state_dict)
@@ -62,7 +61,7 @@ class InvertResBlock(BasicBlock):
         self.input_channel = self.state_dict[0].shape[1]
         self.output_channel_one = self.state_dict[0].shape[0]
         self.output_channel = self.state_dict[-1].shape[0]
-        self.num_layer = len(self.state_dict) // 5  # Conv2d只含有1个weight，BN含有weight/bias/running_mean等5个属性
+        self.num_layer = len(self.state_dict) // 5
         self.output1_weight = self.state_dict[0]
         self.output2_weight = self.state_dict[5]
         if self.num_layer != 2:
