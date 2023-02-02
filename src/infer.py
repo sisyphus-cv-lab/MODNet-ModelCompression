@@ -160,7 +160,7 @@ if __name__ == '__main__':
     save_dir = './result/' + ckp_pth.split('/')[-1][:-5]
     images_with_single_model(modnet, ckp_pth, dataset_dir, save_dir)
 
-    # # func 2, infer images with multiple models in dir(针对文件夹中的所有模型)
+    # # func 2, infer images with multiple models in dir
     # model_dir = '../pretrained/our_model/'
     # save_path = './res/'
     # infer_images_with_models(modnet, model_dir, dataset_dir, save_path)

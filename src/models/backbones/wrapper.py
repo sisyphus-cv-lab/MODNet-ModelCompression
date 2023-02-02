@@ -93,12 +93,6 @@ class MobileNetV2BackboneAuto(BaseBackboneAuto):
 
         self.model = MobileNetV2Auto(self.in_channels, self.cfg, self.expansion_cfg, num_classes=None)
         self.last_channel = self.model.last_channel
-        # self.enc_channels = [16, 24, 32, 96, 1280]
-        # 1280：代表即mobilenet输出，有联系
-        # 96：lr se_block后的第一个input，独立
-        # 32：位于lr中的两个CBR，以及fusion的input，独立
-        # 24：Hr tohr_enc4x，独立
-        # 16：Hr 的input，独立
 
     def forward(self, x):
         x = self.model.features[0](x)
@@ -131,7 +125,9 @@ class MobileNetV2BackboneAuto(BaseBackboneAuto):
         x = self.model.features[16](x)
         x = self.model.features[17](x)
         x = self.model.features[18](x)
-        enc32x = x  # 3个inverted + 1个inverted + CBR
+
+        #  3inverted + 1 inverted + CBR
+        enc32x = x
         return [enc2x, enc4x, enc8x, enc16x, enc32x]
 
     def load_pretrained_ckpt(self):

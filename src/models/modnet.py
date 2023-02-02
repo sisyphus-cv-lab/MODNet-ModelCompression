@@ -260,11 +260,3 @@ class MODNet(nn.Module):
         if norm.weight is not None:
             nn.init.constant_(norm.weight, 1)
             nn.init.constant_(norm.bias, 0)
-
-
-if __name__ == '__main__':
-    model = MODNet(backbone_pretrained=False)
-    dummy_input = torch.randn([1, 3, 512, 512])
-    flops, params, _ = count_flops_params(model, dummy_input, verbose=True)
-    print(f"Model FLOPs {flops / 1e6:.2f}M, Params {params / 1e6:.2f}M")
-

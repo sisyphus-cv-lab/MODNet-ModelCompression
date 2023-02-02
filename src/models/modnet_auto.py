@@ -234,8 +234,12 @@ class MODNet_auto(nn.Module):
             cfg = [32, 16, 24, 24, 32, 32, 32, 64, 64, 64, 64, 96, 96, 96, 160, 160, 160, 320, 1280]
         if expansion is None:
             expansion = [None, 1, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, None]
+        else:
+            expansion = [None] + expansion + [None]
+
         # if enc_channels is None:
         #     enc_channels = [16, 24, 32, 96, 1280]
+
         if lr_channel is None:
             lr_channel = [32, 96]
         if hr_channel is None:
@@ -283,10 +287,3 @@ class MODNet_auto(nn.Module):
         if norm.weight is not None:
             nn.init.constant_(norm.weight, 1)
             nn.init.constant_(norm.bias, 0)
-
-
-if __name__ == '__main__':
-    model = MODNet_auto(backbone_pretrained=False)
-    dummy_input = torch.randn([1, 3, 512, 512])
-    flops, params, _ = count_flops_params(model, dummy_input, verbose=True)
-    print(f"Model FLOPs {flops / 1e6:.2f}M, Params {params / 1e6:.2f}M")

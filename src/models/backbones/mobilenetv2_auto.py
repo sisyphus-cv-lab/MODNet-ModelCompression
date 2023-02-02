@@ -90,19 +90,17 @@ class MobileNetV2Auto(nn.Module):
                                         [None, None, 1, 1],
                                         None]
 
-        # 根据cfg，配置interverted_residual_setting
         for i, v in enumerate(cfg):
             if i == 0 or i == len(cfg) - 1:  # in & out
                 interverted_residual_setting[i] = v
             else:
                 interverted_residual_setting[i][1] = v
 
-        # 根据expansion_cfg，配置
+        # 根据expansion_cfg配置
         for i, v in enumerate(expansion_cfg):
             if i == 0 or i == len(cfg) - 1:
                 continue
             interverted_residual_setting[i][0] = v
-        # print(interverted_residual_setting)
 
         # 1. building first layer
         input_channel, last_channel = interverted_residual_setting[0], interverted_residual_setting[-1]
@@ -112,8 +110,8 @@ class MobileNetV2Auto(nn.Module):
         # 2. building inverted residual blocks
         for t, c, n, s in interverted_residual_setting[1:-1]:
             output_channel = c
-            for i in range(n):  # block的重复次数为n
-                if i == 0:  # 除第一个block外，每一个父block中的第一个子block进行降采样，即stride = 2
+            for i in range(n):
+                if i == 0:
                     self.features.append(InvertedResidual(input_channel, output_channel, s, expansion=t))
                 else:
                     self.features.append(InvertedResidual(input_channel, output_channel, 1, expansion=t))
@@ -123,7 +121,7 @@ class MobileNetV2Auto(nn.Module):
         self.features.append(ConvBNRelu(input_channel, self.last_channel, 1, 1, 0))
 
         # make it nn.Sequential
-        # 将input feature、InvertedResidual、output feature三部分连接成sequential
+        # Connecting the three parts of input features, inverse residuals, and output features
         self.features = nn.Sequential(*self.features)
 
         if self.num_classes is not None:

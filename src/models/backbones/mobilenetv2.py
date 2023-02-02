@@ -4,8 +4,9 @@ import math
 
 import torch
 from torch import nn
-# from nni.compression.pytorch.pruner import count_flops_params
 
+
+# from nni.compression.pytorch.pruner import count_flops_params
 
 
 # ------------------------------------------------------------------------------
@@ -20,7 +21,6 @@ def _make_divisible(v, divisor, min_value=None):
     if new_v < 0.9 * v:
         new_v += divisor
     return new_v
-
 
 
 def conv_bn(inp, oup, stride):
@@ -198,10 +198,3 @@ class MobileNetV2(nn.Module):
                 n = m.weight.size(1)
                 m.weight.data.normal_(0, 0.01)
                 m.bias.data.zero_()
-
-if __name__ == '__main__':
-    model = MobileNetV2(3)
-
-    dummy_input = torch.randn([1, 3, 512, 512])
-    flops, params, _ = count_flops_params(model, dummy_input, verbose=True)
-    print(f"Model FLOPs {flops / 1e6:.2f}M, Params {params / 1e6:.2f}M")
