@@ -33,8 +33,8 @@ Warm tips: Use "python main.py -h" to get the relevant reference when pruning~~
 | Params（M）     | 6.45     | 1.34     |
 | FLOPs（G）      | 18.32    | 4.38     |
 | Model size（M） | 25.64    | 5.66     |
-| MSE             | 0.004318 | 0.018713 |
-| MAD             | 0.008163 | 0.022816 |
+| MSE             | 0.009912 | 0.018713 |
+| MAD             | 0.013661 | 0.022816 |
 
 NOTE:
 
