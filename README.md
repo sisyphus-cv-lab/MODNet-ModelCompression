@@ -1,12 +1,20 @@
 
 
-# MODNet Pruning
+<div align="center">
+[简体中文](README.md) | [English](README.EN.md)
+<br>
 
-We adopt a pruning method combining **adaptive and fixed scale** for the video portrait keying model MODNet, based on the **L1-norm pruning** strategy. While reducing the number of model parameters and computational effort, it improves the inference speed and maintains certain visual effects.
+## Introduction
+
+基于经典L1-Norm评价准则，我们采用了一种自适应与固定比例相结合(Adaptive and Fixed-scale Pruning)的剪枝策略对视频人像抠图模型MODNet进行压缩。该策略较大程度去除了MODNet中的冗余参数，并降低了计算代价，在存储资源的利用上节省了79%！✨
+
+---
+
+此外，本项目采用OpenVINO将边缘计算引入视频人像抠图技术，通过边缘端推理测试，剪枝模型MODNet-P取得了一定的速度提升与较好的视觉效果！✨
 
 ## Usage
 
-### 1 Clone and install packages
+### 1 克隆项目并安装环境依赖
 
 ```bash
 git clone https://github.com/sisyphus-cv-lab/MODNet-ModelCompression
@@ -14,19 +22,21 @@ cd MODNet-ModelCompression
 pip install -r requirements.txt  
 ```
 
-### 2 Download pretrained model 
+### 2 下载预训练模型
 
-### 3 Quick pruning
+从这里[下载](https://drive.google.com/drive/folders/1SiVFYBkrkokBdv-EGyz1UKjQebgvV2Wy?usp=share_link)。
+
+### 3 剪枝
 
 ```bash
-python main.py --ckpt_path=./pretrained/our_modnet.ckpt --ratio 0.5 --threshold 0.5
+python main.py --ckpt_path=./pretrained/new_modnet.ckpt --ratio 0.5 --threshold 0.5
 ```
 
-Warm tips: Use "python main.py -h" to get the relevant reference when pruning~~
+Tips: 使用 "python main.py -h" 获取剪枝时指定的参数介绍。
 
 ## Results on PPM-100
 
-### Comparison of the models before and after pruning
+### 剪枝前后模型对比
 
 | INDEX           | MODNet   | MODNet-P |
 | --------------- | -------- | -------- |
@@ -38,12 +48,11 @@ Warm tips: Use "python main.py -h" to get the relevant reference when pruning~~
 
 NOTE:
 
-1. Here we retrained MODNet by adopting our own constructed dataset, so the MSE and MAD in the table are not mentioned in the original paper of MODNet.
-2. We used a combination of **Adaptive-Pruning and Fixed-Scale,** where the threshold of adaptive pruning was 0.5 and the scale of fixed-scale was 0.5.
+1. 训练数据集通过随机组合得到，因此，表格中MODNet精度指标MSE、MAD与原论文不一致。
 
 ---
 
-### Comparison of speeds on MODNet and Ours
+### 剪枝前后模型推理速度对比
 
 | Speed on device    | MODNet    | MODNet-P  |
 | ------------------ | --------- | --------- |
@@ -53,25 +62,25 @@ NOTE:
 
 NOTE:
 
-1. The USB 3.0 interface is required for testing on NSC2;
+1. 使用OpenVINO在NSC2上推理时，需要USB3.0的接口；
 
 ---
 
-### Comparison of performance between fine-tune and train-from-scratch
+### 模型再训练方式对比
 
-|                  | fine-tune | train-from-scratch |
+| Method           | fine-tune | train-from-scratch |
 | ---------------- | --------- | ------------------ |
 | fixed backbone   | 0.018291  | 0.015588           |
 | unfixed backbone | 0.018632  | 0.016826           |
 
 NOTE:
 
-2. In order to illustrate the effect of fine-tune and train from scratch after pruning, we pruned and tested the backbone MobileNetV2 in MODNet fixed or not. 
-2. Using only MSE as an evaluation criteria;
+2. 进一步对比`微调`与`从头训练`两种方式的性能，我们通过固定主干网络与否对MODNet进行剪枝、测试；
+2. 为了便于观察比较，这里仅使用MSE作为评价准则。
 
 ## Contact
 
-If you have any questions, please feel free to contact hbchenstu@outlook.com.
+关于本项目任何的疑问、建议，欢迎联系 hbchenstu@outlook.com.
 
 ## Reference
 
