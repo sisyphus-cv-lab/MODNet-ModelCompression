@@ -1,5 +1,7 @@
 *.ckpt
 *.onnx
 
+
 .idea/
 __pycache__/
+result/
