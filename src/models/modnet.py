@@ -1,9 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from nni.compression.pytorch.utils import count_flops_params
 
-from src.models.backbones import SUPPORTED_BACKBONES
+from .backbones import SUPPORTED_BACKBONES
 
 
 # ------------------------------------------------------------------------------
@@ -17,7 +16,6 @@ class IBNorm(nn.Module):
     def __init__(self, in_channels):
         super(IBNorm, self).__init__()
         in_channels = in_channels
-
         self.bnorm_channels = int(in_channels / 2)
         self.inorm_channels = in_channels - self.bnorm_channels
 
@@ -32,6 +30,9 @@ class IBNorm(nn.Module):
 
 
 class Conv2dIBNormRelu(nn.Module):
+    """ Convolution + IBNorm + ReLu
+    """
+
     def __init__(self, in_channels, out_channels, kernel_size,
                  stride=1, padding=0, dilation=1, groups=1, bias=True,
                  with_ibn=True, with_relu=True):
@@ -55,7 +56,7 @@ class Conv2dIBNormRelu(nn.Module):
 
 
 class SEBlock(nn.Module):
-    """ SE Block Proposed in https://arxiv.org/pdf/1709.01507.pdf 
+    """ SE Block Proposed in https://arxiv.org/pdf/1709.01507.pdf
     """
 
     def __init__(self, in_channels, out_channels, reduction=1):
@@ -87,25 +88,24 @@ class LRBranch(nn.Module):
     def __init__(self, backbone):
         super(LRBranch, self).__init__()
 
-        enc_channels = backbone.enc_channels  # [16, 24, 32, 96, 1280]  [8, 24, 32, 48, 640]
-        # enc_channels = [16, 24, 32, 96, 1280]
-        # enc_channels = [8, 24, 32, 48, 640]
+        enc_channels = backbone.enc_channels
+
         self.backbone = backbone
         self.se_block = SEBlock(enc_channels[4], enc_channels[4], reduction=4)
-        self.conv_lr16x = Conv2dIBNormRelu(enc_channels[4], enc_channels[3], 5, stride=1, padding=2)  # 1280  96
+        self.conv_lr16x = Conv2dIBNormRelu(enc_channels[4], enc_channels[3], 5, stride=1, padding=2)
         self.conv_lr8x = Conv2dIBNormRelu(enc_channels[3], enc_channels[2], 5, stride=1, padding=2)
-        self.conv_lr = Conv2dIBNormRelu(enc_channels[2], 1, kernel_size=3, stride=2, padding=1, with_ibn=False,  # 32
+        self.conv_lr = Conv2dIBNormRelu(enc_channels[2], 1, kernel_size=3, stride=2, padding=1, with_ibn=False,
                                         with_relu=False)
 
-    def forward(self, img, inference=False):
-        enc_features = self.backbone.forward(img)  # [enc2x, enc4x, enc8x, enc16x, enc32x]
+    def forward(self, img, inference):
+        enc_features = self.backbone.forward(img)
         enc2x, enc4x, enc32x = enc_features[0], enc_features[1], enc_features[4]
 
-        enc32x = self.se_block(enc32x)  # [1,1280,16,16]
-        lr16x = F.interpolate(enc32x, scale_factor=2, mode='bilinear', align_corners=False, recompute_scale_factor=True)
+        enc32x = self.se_block(enc32x)
+        lr16x = F.interpolate(enc32x, scale_factor=2, mode='bilinear', align_corners=False)
         lr16x = self.conv_lr16x(lr16x)
-        lr8x = F.interpolate(lr16x, scale_factor=2, mode='bilinear', align_corners=False, recompute_scale_factor=True)
-        lr8x = self.conv_lr8x(lr8x)  # [1,32,64,64]
+        lr8x = F.interpolate(lr16x, scale_factor=2, mode='bilinear', align_corners=False)
+        lr8x = self.conv_lr8x(lr8x)
 
         pred_semantic = None
         if not inference:
@@ -125,14 +125,13 @@ class HRBranch(nn.Module):
         self.tohr_enc2x = Conv2dIBNormRelu(enc_channels[0], hr_channels, 1, stride=1, padding=0)
         self.conv_enc2x = Conv2dIBNormRelu(hr_channels + 3, hr_channels, 3, stride=2, padding=1)
 
-        self.tohr_enc4x = Conv2dIBNormRelu(enc_channels[1], hr_channels, 1, stride=1, padding=0)  # 24,32
+        self.tohr_enc4x = Conv2dIBNormRelu(enc_channels[1], hr_channels, 1, stride=1, padding=0)
         self.conv_enc4x = Conv2dIBNormRelu(2 * hr_channels, 2 * hr_channels, 3, stride=1, padding=1)
 
         self.conv_hr4x = nn.Sequential(
             Conv2dIBNormRelu(3 * hr_channels + 3, 2 * hr_channels, 3, stride=1, padding=1),
             Conv2dIBNormRelu(2 * hr_channels, 2 * hr_channels, 3, stride=1, padding=1),
             Conv2dIBNormRelu(2 * hr_channels, hr_channels, 3, stride=1, padding=1),
-
         )
 
         self.conv_hr2x = nn.Sequential(
@@ -147,29 +146,25 @@ class HRBranch(nn.Module):
             Conv2dIBNormRelu(hr_channels, 1, kernel_size=1, stride=1, padding=0, with_ibn=False, with_relu=False),
         )
 
-    def forward(self, img, enc2x, enc4x, lr8x, inference=False):  # [1,3,512,512]
-        img2x = F.interpolate(img, scale_factor=1 / 2, mode='bilinear', align_corners=False,
-                              recompute_scale_factor=True)  # [1,3,256,256]
-        img4x = F.interpolate(img, scale_factor=1 / 4, mode='bilinear', align_corners=False,
-                              recompute_scale_factor=True)  # [1,3,128,128]
+    def forward(self, img, enc2x, enc4x, lr8x, inference):
+        img2x = F.interpolate(img, scale_factor=1 / 2, mode='bilinear', align_corners=False)
+        img4x = F.interpolate(img, scale_factor=1 / 4, mode='bilinear', align_corners=False)
 
         enc2x = self.tohr_enc2x(enc2x)
         hr4x = self.conv_enc2x(torch.cat((img2x, enc2x), dim=1))
 
         enc4x = self.tohr_enc4x(enc4x)
-        res = torch.cat((hr4x, enc4x), dim=1)
         hr4x = self.conv_enc4x(torch.cat((hr4x, enc4x), dim=1))
 
-        lr4x = F.interpolate(lr8x, scale_factor=2, mode='bilinear',
-                             align_corners=False, recompute_scale_factor=True)  # [1,32,64,64] ---> [1,32,128,128]
+        lr4x = F.interpolate(lr8x, scale_factor=2, mode='bilinear', align_corners=False)
         hr4x = self.conv_hr4x(torch.cat((hr4x, lr4x, img4x), dim=1))
 
-        hr2x = F.interpolate(hr4x, scale_factor=2, mode='bilinear', align_corners=False, recompute_scale_factor=True)
+        hr2x = F.interpolate(hr4x, scale_factor=2, mode='bilinear', align_corners=False)
         hr2x = self.conv_hr2x(torch.cat((hr2x, enc2x), dim=1))
 
         pred_detail = None
         if not inference:
-            hr = F.interpolate(hr2x, scale_factor=2, mode='bilinear', align_corners=False, recompute_scale_factor=True)
+            hr = F.interpolate(hr2x, scale_factor=2, mode='bilinear', align_corners=False)
             hr = self.conv_hr(torch.cat((hr, img), dim=1))
             pred_detail = torch.sigmoid(hr)
 
@@ -191,12 +186,12 @@ class FusionBranch(nn.Module):
         )
 
     def forward(self, img, lr8x, hr2x):
-        lr4x = F.interpolate(lr8x, scale_factor=2, mode='bilinear', align_corners=False, recompute_scale_factor=True)
+        lr4x = F.interpolate(lr8x, scale_factor=2, mode='bilinear', align_corners=False)
         lr4x = self.conv_lr4x(lr4x)
-        lr2x = F.interpolate(lr4x, scale_factor=2, mode='bilinear', align_corners=False, recompute_scale_factor=True)
+        lr2x = F.interpolate(lr4x, scale_factor=2, mode='bilinear', align_corners=False)
 
         f2x = self.conv_f2x(torch.cat((lr2x, hr2x), dim=1))
-        f = F.interpolate(f2x, scale_factor=2, mode='bilinear', align_corners=False, recompute_scale_factor=True)
+        f = F.interpolate(f2x, scale_factor=2, mode='bilinear', align_corners=False)
         f = self.conv_f(torch.cat((f, img), dim=1))
         pred_matte = torch.sigmoid(f)
 
@@ -211,8 +206,7 @@ class MODNet(nn.Module):
     """ Architecture of MODNet
     """
 
-    def __init__(self, in_channels=3, hr_channels=32, backbone_arch='mobilenetv2',
-                 backbone_pretrained=True):
+    def __init__(self, in_channels=3, hr_channels=32, backbone_arch='mobilenetv2', backbone_pretrained=True):
         super(MODNet, self).__init__()
 
         self.in_channels = in_channels
@@ -223,7 +217,7 @@ class MODNet(nn.Module):
         self.backbone = SUPPORTED_BACKBONES[self.backbone_arch](self.in_channels)
 
         self.lr_branch = LRBranch(self.backbone)
-        self.hr_branch = HRBranch(self.hr_channels, self.backbone.enc_channels)  # [16, 24, 32, 96, 1280]
+        self.hr_branch = HRBranch(self.hr_channels, self.backbone.enc_channels)
         self.f_branch = FusionBranch(self.hr_channels, self.backbone.enc_channels)
 
         for m in self.modules():
@@ -235,7 +229,7 @@ class MODNet(nn.Module):
         if self.backbone_pretrained:
             self.backbone.load_pretrained_ckpt()
 
-    def forward(self, img, inference=False):
+    def forward(self, img, inference):
         pred_semantic, lr8x, [enc2x, enc4x] = self.lr_branch(img, inference)
         pred_detail, hr2x = self.hr_branch(img, enc2x, enc4x, lr8x, inference)
         pred_matte = self.f_branch(img, lr8x, hr2x)

@@ -1,12 +1,11 @@
 """ This file is adapted from https://github.com/thuyngch/Human-Segmentation-PyTorch"""
 
 import math
+import json
+from functools import reduce
 
 import torch
 from torch import nn
-
-
-# from nni.compression.pytorch.pruner import count_flops_params
 
 
 # ------------------------------------------------------------------------------
@@ -127,12 +126,12 @@ class MobileNetV2(nn.Module):
         # make it nn.Sequential
         self.features = nn.Sequential(*self.features)
 
-        # # building classifier
-        # if self.num_classes is not None:
-        #     self.classifier = nn.Sequential(
-        #         nn.Dropout(0.2),
-        #         nn.Linear(self.last_channel, num_classes),
-        #     )
+        # building classifier
+        if self.num_classes is not None:
+            self.classifier = nn.Sequential(
+                nn.Dropout(0.2),
+                nn.Linear(self.last_channel, num_classes),
+            )
 
         # Initialize weights
         self._init_weights()
@@ -164,9 +163,9 @@ class MobileNetV2(nn.Module):
         x = self.features[18](x)
 
         # Classification
-        # if self.num_classes is not None:
-        # 	x = x.mean(dim=(2,3))
-        # 	x = self.classifier(x)
+        if self.num_classes is not None:
+            x = x.mean(dim=(2, 3))
+            x = self.classifier(x)
 
         # Output
         return x
