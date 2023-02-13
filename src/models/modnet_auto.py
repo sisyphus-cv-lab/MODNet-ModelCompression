@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from nni.compression.pytorch.utils import count_flops_params
-# from torchinfo import summary
 
 # from .backbones import SUPPORTED_BACKBONES
 from src.models.backbones import SUPPORTED_BACKBONES
