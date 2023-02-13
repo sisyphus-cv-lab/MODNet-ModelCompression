@@ -86,8 +86,21 @@ class MobileNetV2Backbone(BaseBackbone):
         enc32x = x
         return [enc2x, enc4x, enc8x, enc16x, enc32x]
 
+    def load_pretrained_ckpt(self):
+        # the pre-trained model is provided by https://github.com/thuyngch/Human-Segmentation-PyTorch
+        ckpt_path = './pretrained/mobilenetv2_human_seg.ckpt'
+        if not os.path.exists(ckpt_path):
+            print('cannot find the pretrained mobilenetv2 backbone')
+            exit()
+
+        ckpt = torch.load(ckpt_path)
+        self.model.load_state_dict(ckpt)
+
 
 class MobileNetV2BackboneAuto(BaseBackboneAuto):
+    """ MobileNetV2 Auto Backbone
+    """
+
     def __init__(self, in_channels, cfg, expansion_cfg):
         super(MobileNetV2BackboneAuto, self).__init__(in_channels, cfg, expansion_cfg)
 
@@ -132,6 +145,7 @@ class MobileNetV2BackboneAuto(BaseBackboneAuto):
 
     def load_pretrained_ckpt(self):
         # the pre-trained model is provided by https://github.com/thuyngch/Human-Segmentation-PyTorch
+        print('adw ')
         ckpt_path = './pretrained/new_mobilenetv2_human_seg.ckpt'
         if not os.path.exists(ckpt_path):
             print('cannot find the pretrained mobilenetv2 backbone')
