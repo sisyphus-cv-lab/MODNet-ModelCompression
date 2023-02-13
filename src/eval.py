@@ -5,9 +5,9 @@ modnet = nn.DataParallel(modnet)
 ckpt_path = './pretrained/modnet_photographic_portrait_matting.ckpt'
 
 # load our own trained modnet
-modnet = MODNet_auto(backbone_pretrained=False)
-modnet = nn.DataParallel(modnet)
-ckp_pth = '../pretrained/our_modnet.ckpt'
+# modnet = MODNet_auto(backbone_pretrained=False)
+# modnet = nn.DataParallel(modnet)
+# ckp_pth = '../pretrained/our_modnet.ckpt'
 """
 import argparse
 
