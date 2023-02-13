@@ -3,9 +3,14 @@
 # Base python==3.8
 numpy==1.22.4
 matplotlib==3.5.1
+scipy==1.7.3
 Pillow==9.0.1
 opencv-python==4.4.0.40
 torch>=1.7.0
 
+
 # Extras (compute flops and params)
 nni==2.7
+
+# deployment
+openvino-dev[pytorch]==2022.3.0
