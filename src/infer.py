@@ -178,7 +178,7 @@ if __name__ == '__main__':
     images_with_single_model(modnet, ckpt_path, dataset_dir, save_dir)
     print(f"Save infer result to {save_dir}")
 
-    # # func 2, infer images with multiple models in dir
+    # func 2, infer images with multiple models in dir
     # model_dir = '../pretrained/our_model/'
     # save_path = './res/'
     # infer_images_with_models(modnet, model_dir, dataset_dir, save_path)
