@@ -1,7 +1,19 @@
 *.ckpt
 *.onnx
 
+*.xml
+*.bin
+
+
+*.jpg
+*.png
+
+
+src/datasets
 
 .idea/
 __pycache__/
+
+
 result/
+pretrained/our_model/
