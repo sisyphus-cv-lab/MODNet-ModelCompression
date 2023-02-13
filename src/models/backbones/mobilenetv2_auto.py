@@ -96,7 +96,6 @@ class MobileNetV2Auto(nn.Module):
             else:
                 interverted_residual_setting[i][1] = v
 
-        # 根据expansion_cfg配置
         for i, v in enumerate(expansion_cfg):
             if i == 0 or i == len(cfg) - 1:
                 continue
@@ -158,6 +157,11 @@ class MobileNetV2Auto(nn.Module):
         x = self.features[16](x)
         x = self.features[17](x)
         x = self.features[18](x)
+
+        # Classification
+        if self.num_classes is not None:
+            x = x.mean(dim=(2, 3))
+            x = self.classifier(x)
 
         # Output
         return x
