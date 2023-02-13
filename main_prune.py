@@ -1,5 +1,6 @@
 # Import the necessary packages
 import os
+import json
 import argparse
 import numpy as np
 
@@ -295,7 +296,7 @@ def run(pretrained_path, ratio, threshold, weight_replace=False, verbose=True, s
     else:
         assert not condition2, f"Weights replacing, expected ratio to be 0.5. but got {ratio}"
 
-    if not os.path.isdir(save_dir):
+    if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
     # Step1: Loading the model
@@ -362,13 +363,24 @@ def run(pretrained_path, ratio, threshold, weight_replace=False, verbose=True, s
         new_modnet = pruned_modnet
 
         # Calculate the parameters and computational complexity of the pruned model
-        flops, params, _ = count_flops_params(pruned_modnet, dummy_input, verbose=False)
+        flops, params, _ = count_flops_params(new_modnet, dummy_input, verbose=False)
         print(f"\nPruned Model after Weight Replacing:\nFLOPs {flops / 1e6:.2f}M, Params {params / 1e6:.2f}M")
 
-    # Saving pruned modnet
+    # Save pruned modnet
     save_path = f'{save_dir}modnet_p_ratio_{ratio}_thresh_{threshold}.ckpt'
-    print(f"\nSave_model_to={save_path}")
+    print(f"\nSaving_model_to={save_path}")
     torch.save(new_modnet.state_dict(), save_path)
+
+    # Save info of pruned modnet
+    prune_info = {'ratio': ratio, 'threshold': threshold, 'new_cfg': cfg_residual_init,
+                  'new_expansion_cfg': cfg_expansion,
+                  'new_lr_channels': new_lr_channels,
+                  'new_hr_channels': new_hr_channels, 'new_f_channels': new_f_channels}
+
+    prune_info_path = f'{save_dir}modnet_p_ratio_{ratio}_thresh_{threshold}.json'
+    with open(prune_info_path, 'w') as f:
+        f.write(json.dumps(prune_info, ensure_ascii=False, separators=(',', ':')))
+        print(f"Saving_prune_info_to={prune_info_path}")
 
 
 if __name__ == '__main__':
