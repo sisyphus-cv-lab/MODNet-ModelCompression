@@ -1,4 +1,13 @@
+"""
+# load official modnet
+modnet = MODNet(backbone_pretrained=False)
+modnet = nn.DataParallel(modnet)
+"""
+import argparse
+
 from PIL import Image
+from time import time
+
 import numpy as np
 from torchvision import transforms
 import torch
@@ -6,9 +15,11 @@ import torch.nn.functional as F
 import torch.nn as nn
 import cv2 as cv
 import os
+import json
 
 from src.models.modnet import MODNet
 from src.models.modnet_auto import MODNet_auto
+
 
 def predit_matte(modnet: MODNet, im: Image):
     # define image to tensor transform
@@ -61,7 +72,7 @@ def predit_matte(modnet: MODNet, im: Image):
         # _, _, matte = modnet(im.cuda() if torch.cuda.is_available() else im, True)
         _, _, matte = modnet(im)
         # end = time()
-        # print('Infer time:', end - start)
+        # print(f'Infer time: {end - start:.6}s')
 
         # resize and save matte
         matte = F.interpolate(matte, size=(im_h, im_w), mode='area')
@@ -89,13 +100,14 @@ def infer_images(model, file_dir, save_dir):
         img = Image.open(file_dir + file_name)
 
         matte = predit_matte(model, img)
+
         prd_img = Image.fromarray(((matte * 255).astype('uint8')), mode='L')
+        prd_img = np.asarray(prd_img)
 
         img = cv.cvtColor(np.asarray(img), cv.COLOR_RGB2BGR)
-        prd_img = cv.cvtColor(np.asarray(prd_img), cv.COLOR_RGB2BGR)
-        res = cv.add(img, 255 - prd_img)
+        mask = cv.merge([prd_img, prd_img, prd_img])
+        res = cv.add(img, 255 - mask)
         h, w = img.shape[:2]
-        res = cv.resize(res, (int(w / 4), int(h / 4)))
         cv.imwrite(save_dir + "/" + file_name, res)
 
 
@@ -123,29 +135,34 @@ def infer_images_with_models(model, model_dir_path, file_dir, save_path):
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
 
-        print(ckpt_path)
         infer_images(model, file_dir, save_dir)
 
 
 if __name__ == '__main__':
-    dataset_dir = 'F:/AI/MODNet/src/datasets/PPM-100/val/fg/'
+    # define cmd arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--ckpt-path', type=str, required=True,
+                        help='path of the checkpoint that will be infered')
+    parser.add_argument('--prune-info', type=str, required=True,
+                        help='path of the prune info')
+    args = parser.parse_args()
 
-    # # load official modnet
-    # modnet = MODNet(backbone_pretrained=False)
-    # modnet = nn.DataParallel(modnet)
-    #
-    # # func 1, infer images with single model
-    # ckp_pth = '../pretrained/modnet_photographic_portrait_matting.ckpt'
-    # save_dir = './test_result/' + ckp_pth.split('/')[-1][:-5]
-    # images_with_single_model(modnet, ckp_pth, dataset_dir, save_dir)
+    # check input argumentsd
+    ckpt_path = args.ckpt_path
+    prune_info = args.prune_info
+
+    # load ppm-100 dataset
+    dataset_dir = './src/datasets/PPM-100/val/fg/'
 
     # load our pruned model
-    ratio = 0.5
-    my_cfg = [8, 8, 8, 16, 24, 16, 16, 48, 16, 16, 8, 32, 16, 32, 104, 32, 64, 232, 584]
-    my_expansion_cfg = [None, 1, 9, 14, 4, 7, 9, 3, 7, 19, 22, 24, 15, 30, 17, 7, 26, 15, None]
-    my_lr_channels = [32, 16]
-    my_hr_channels = [8, 16]
-    my_f_channels = [32]
+    prune_info = json.load(open(prune_info))
+    ratio = prune_info['ratio']
+    threshold = prune_info['threshold']
+    my_cfg = prune_info['new_cfg']
+    my_expansion_cfg = prune_info['new_expansion_cfg']
+    my_hr_channels = prune_info['new_hr_channels']
+    my_lr_channels = prune_info['new_lr_channels']
+    my_f_channels = prune_info['new_f_channels']
 
     modnet = MODNet_auto(cfg=my_cfg, expansion=my_expansion_cfg, lr_channel=my_lr_channels,
                          hr_channel=my_hr_channels,
@@ -155,10 +172,11 @@ if __name__ == '__main__':
 
     modnet = nn.DataParallel(modnet)
 
-    # func 1, infer images with single model(只针对单个模型)
-    ckp_pth = '../pretrained/our_model/pruned_modnet.ckpt'
-    save_dir = './result/' + ckp_pth.split('/')[-1][:-5]
-    images_with_single_model(modnet, ckp_pth, dataset_dir, save_dir)
+    # func 1, infer images with single model
+    save_dir = ckpt_path.split('/')[-1][:-5]
+    print(f"Starting......")
+    images_with_single_model(modnet, ckpt_path, dataset_dir, save_dir)
+    print(f"Save infer result to {save_dir}")
 
     # # func 2, infer images with multiple models in dir
     # model_dir = '../pretrained/our_model/'
