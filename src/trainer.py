@@ -377,7 +377,7 @@ if __name__ == '__main__':
 
     state_dict = torch.load(model_path)
     modnet.load_state_dict(state_dict)
-    modnet = torch.nn.DataParallel(modnet)  # .cuda()
+    modnet = torch.nn.DataParallel(modnet)
     if torch.cuda.is_available():
         modnet = modnet.cuda()
 
