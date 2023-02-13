@@ -1,8 +1,22 @@
+"""
+# load official modnet
+modnet = MODNet(backbone_pretrained=False)
+modnet = nn.DataParallel(modnet)
+ckpt_path = './pretrained/modnet_photographic_portrait_matting.ckpt'
+
+# load our own trained modnet
+modnet = MODNet_auto(backbone_pretrained=False)
+modnet = nn.DataParallel(modnet)
+ckp_pth = '../pretrained/our_modnet.ckpt'
+"""
+import argparse
+
 import numpy as np
 import torch.nn as nn
 import torch
 from PIL import Image
 from glob import glob
+import json
 
 from src.models.modnet import MODNet
 from src.models.modnet_auto import MODNet_auto
@@ -59,25 +73,30 @@ def eval(modnet: MODNet, dataset):
 
 
 if __name__ == '__main__':
-    dataset_dir = load_eval_dataset('../src/datasets/PPM-100')
+    # define cmd arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--ckpt-path', type=str, required=True,
+                        help='path of the checkpoint that will be evaluated')
+    parser.add_argument('--prune-info', type=str, required=True,
+                        help='path of the prune info')
+    args = parser.parse_args()
 
-    # load official modnet
-    # modnet = MODNet(backbone_pretrained=False)
-    # modnet = nn.DataParallel(modnet)
-    # ckp_pth = '../pretrained/modnet_photographic_portrait_matting.ckpt'
+    # check input argumentsd
+    ckpt_path = args.ckpt_path
+    prune_info = args.prune_info
 
-    # load our own trained modnet
-    # modnet = MODNet_auto(backbone_pretrained=False)
-    # modnet = nn.DataParallel(modnet)
-    # ckp_pth = '../pretrained/our_modnet.ckpt'
+    # load ppm-100 dataset
+    dataset_dir = load_eval_dataset('./src/datasets/PPM-100')
 
-    # load our pruned model
-    ratio = 0.5
-    my_cfg = [8, 8, 8, 16, 24, 16, 16, 48, 16, 16, 8, 32, 16, 32, 104, 32, 64, 232, 584]
-    my_expansion_cfg = [None, 1, 9, 14, 4, 7, 9, 3, 7, 19, 22, 24, 15, 30, 17, 7, 26, 15, None]
-    my_lr_channels = [32, 16]
-    my_hr_channels = [8, 16]
-    my_f_channels = [32]
+    # load pruned model
+    prune_info = json.load(open(prune_info))
+    ratio = prune_info['ratio']
+    threshold = prune_info['threshold']
+    my_cfg = prune_info['new_cfg']
+    my_expansion_cfg = prune_info['new_expansion_cfg']
+    my_hr_channels = prune_info['new_hr_channels']
+    my_lr_channels = prune_info['new_lr_channels']
+    my_f_channels = prune_info['new_f_channels']
 
     modnet = MODNet_auto(cfg=my_cfg, expansion=my_expansion_cfg, lr_channel=my_lr_channels,
                          hr_channel=my_hr_channels,
@@ -86,17 +105,17 @@ if __name__ == '__main__':
                          backbone_pretrained=False)
 
     modnet = nn.DataParallel(modnet)
-    ckp_pth = '../pretrained/our_model/pruned_modnet.ckpt'
 
-    # assess 1, infer images with single model
-    weights = torch.load(ckp_pth, map_location=torch.device('cpu'))
+    # func1 1, eval images with single model
+    weights = torch.load(ckpt_path, map_location=torch.device('cuda'))
     modnet.load_state_dict(weights)
+    print("Starting......")
     mse, mad = eval(modnet, dataset_dir)
     print(f' mse: {mse:6f}, mad: {mad:6f}')
 
-    # # assess 2, infer images with multiple models in dir
+    # func2, eval images with multiple models in dir
     # # to find the best model with the lowest mse&mad
-    # ckp_dir = '../pretrained/12/'
+    # ckp_dir = ''
     # ckp_pth_set = os.listdir(ckp_dir)
     # ckp_pth_set.sort(key=lambda x: x[-6:-4])
     # for ckp_name in ckp_pth_set:
