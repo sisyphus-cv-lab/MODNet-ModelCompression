@@ -101,7 +101,7 @@ mo --input_model .\result\modnet_p_ratio_0.5_thresh_0.5_best.onnx --model_name p
 After getting **xml and bin** files through Model Optimization, OpenVINO Python API is used to load and complete model inference.
 
 ```bash
-python inference_openvino.py --model-path .\result\modnet_p_ratio_0.5_thresh_0.5.xml --image-path .\data\img.jpg --device CPU
+python inference_openvino.py --model-path .\result\pruned_modnet.xml --image-path .\data\img.jpg --device CPU
 ```
 
 # Results on PPM-100
