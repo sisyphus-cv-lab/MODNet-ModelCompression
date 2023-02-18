@@ -113,7 +113,6 @@ def inference_video(model_path, video_path, device_name):
             input_tensor = ov.Tensor(array=im)
             infer_request.set_input_tensor(input_tensor)
 
-            # start inference
             start_time = time()
             infer_request.infer()
             end_time = time()
