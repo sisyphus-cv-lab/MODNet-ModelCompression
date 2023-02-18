@@ -101,7 +101,7 @@ mo --input_model .\result\modnet_p_ratio_0.5_thresh_0.5_best.onnx --model_name p
 通过模型优化得到xml与bin文件后，利用OpenVINO Python API 装载、完成模型推理。
 
 ```bash
-python inference_openvino.py --model-path .\result\modnet_p_ratio_0.5_thresh_0.5.xml --image-path .\data\img.jpg --device CPU
+python inference_openvino.py --model-path .\result\pruned_modnet.xml --image-path .\data\img.jpg --device CPU
 ```
 
 # Results on PPM-100
@@ -162,4 +162,3 @@ https://github.com/actboy/MODNet
 https://github.com/Eric-mingjie/rethinking-network-pruning
 
 https://github.com/kingpeter2015/libovmatting
-
