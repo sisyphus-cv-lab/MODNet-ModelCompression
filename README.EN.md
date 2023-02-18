@@ -10,7 +10,7 @@
 
 # Introduction
 
-We adopt a pruning method combining **adaptive and fixed scale** for the video portrait keying model MODNet, based on the **L1-norm pruning** strategy. This strategy largely eliminates the redundant parameters in MODNet, reduces the computational cost, and saves 79% in the utilization of storage resources! ✨
+We adopt a heuristic pruning criteria combining **adaptive and fixed scale** for the video portrait keying model MODNet, based on the **L1-norm pruning** strategy. This strategy largely eliminates the redundant parameters in MODNet, reduces the computational cost, and saves 79% in the utilization of storage resources! ✨
 
 ---
 
