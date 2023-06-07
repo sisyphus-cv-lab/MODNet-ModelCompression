@@ -1,17 +1,18 @@
 <div align="center">
   <a href="" target="_blank">
-  <img width="50%" src="https://github.com/sisyphus-cv-lab/MODNet-ModelCompression/tree/main/data/logo_.png"></a>
+  <img width="50%" src="https://github.com/sisyphus-cv-lab/MODNet-ModelCompression/blob/7f2450fbd25af6b6f14a9537ecf2b41e2518d71f/data/logo.png"></a>
 </div>
+
 
 <div align="center">
   <p>
    <a href="https://img.shields.io/badge/Hello-Buddy~-red"><img src="https://img.shields.io/badge/Hello-Buddy~-red.svg"></a>
    <a href="https://img.shields.io/badge/Enjoy-Yourself-brightgreen"><img src="https://img.shields.io/badge/Enjoy-Yourself-brightgreen.svg"></a>
   </p>
-
 [简体中文](README.md) | [English](README.EN.md)
 <br>
 </div>
+
 # 📣Introduction
 
 基于经典L1-Norm评价准则，我们采用了一种**自适应与固定比例相结合**(Adaptive and Fixed-scale Pruning)的启发式剪枝策略对视频人像抠图模型MODNet进行压缩，该策略较大程度去除了MODNet中的冗余参数，并降低了计算代价，在存储资源的利用上节省了**79%**！
