@@ -8,13 +8,7 @@
    <a href="https://img.shields.io/badge/Enjoy-Yourself-brightgreen"><img src="https://img.shields.io/badge/Enjoy-Yourself-brightgreen.svg"></a>
   </p>
 </div>
-<<<<<<< HEAD
-
 [简体中文](README.md) | [English](README.EN.md)
-=======
-[简体中文](README.md) | [English](README.EN.md)
-
->>>>>>> 7f8c4dd1b46a9a9aadbc1064ed3d44a5de510418
 
 # 📣Introduction
 
