@@ -7,11 +7,8 @@
    <a href="https://img.shields.io/badge/Hello-Buddy~-red"><img src="https://img.shields.io/badge/Hello-Buddy~-red.svg"></a>
    <a href="https://img.shields.io/badge/Enjoy-Yourself-brightgreen"><img src="https://img.shields.io/badge/Enjoy-Yourself-brightgreen.svg"></a>
   </p>
-[简体中文](README.md) | [English](README.EN.md)
-
-<br>
 </div>
-
+[简体中文](README.md) | [English](README.EN.md)
 
 
 # 📣Introduction
