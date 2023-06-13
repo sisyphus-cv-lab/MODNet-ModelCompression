@@ -6,16 +6,16 @@
   <p>
    <a href="https://img.shields.io/badge/Hello-Buddy~-red"><img src="https://img.shields.io/badge/Hello-Buddy~-red.svg"></a>
    <a href="https://img.shields.io/badge/Enjoy-Yourself-brightgreen"><img src="https://img.shields.io/badge/Enjoy-Yourself-brightgreen.svg"></a>
-  </p>
-[简体中文](README.md) | [English](README.EN.md)
 <br>
 </div>
 
+[简体中文](README.md) | [English](README.EN.md)
+
 # 📣Introduction
 
-基于经典L1-Norm评价准则，我们采用了一种**自适应与固定比例相结合**(Adaptive and Fixed-scale Pruning)的启发式剪枝策略对视频人像抠图模型MODNet进行压缩，该策略较大程度去除了MODNet中的冗余参数，并降低了计算代价，在存储资源的利用上节省了**79%**！
+基于**L1-Norm**评价准则，我们采用了一种**自适应与固定比例相结合**（Adaptive and Fixed-scale Pruning）的启发式剪枝策略对视频人像抠图模型MODNet进行压缩，该策略较大程度去除了MODNet中的冗余参数，并降低了计算代价，在存储资源的利用上节省了**79%**！🎆
 
-此外，本项目采用OpenVINO将边缘计算引入视频人像抠图技术，通过边缘端推理测试，剪枝模型**MODNet-P**取得了一定的速度提升与较好的视觉推理效果！
+此外，我们采用OpenVINO将边缘计算引入视频人像抠图技术，通过边缘端推理测试，剪枝模型**MODNet-P**取得了一定的速度提升与较好的视觉推理效果！🎆
 
 🚩[论文地址](https://kns.cnki.net/kcms2/article/abstract?v=3uoqIhG8C44YLTlOAiTRKu87-SJxoEJu6LL9TJzd50kCWwlELj4QEt2QYEK5xJJCQa2NxbtW6xTd6f65Jx3C5xFcbi9VcIcw&uniplatform=NZKPT)
 
@@ -85,8 +85,6 @@ json文件信息如下：
 }
 ```
 
-
-
 ### 5 模型再训练
 
 对步骤4中剪枝得到的模型进行再训练，恢复精度。
@@ -119,7 +117,7 @@ python .\onnx\export_onnx.py --ckpt-path .\result\modnet_p_ratio_0.5_thresh_0.5_
 
 ### 9 模型优化
 
-使用OpenVINO 中的模型优化器model optimizer融合BN，从而实现模型的进一步压缩与加速。
+使用OpenVINO 中的模型优化器（model optimizer）融合BN层，从而实现模型的进一步压缩与加速。
 
 ```bash
 mo --input_model .\result\modnet_p_ratio_0.5_thresh_0.5_best.onnx --model_name pruned_modnet --output_dir .\result\
@@ -127,7 +125,7 @@ mo --input_model .\result\modnet_p_ratio_0.5_thresh_0.5_best.onnx --model_name p
 
 ### 10 MODNet-P 模型推理
 
-通过Model Optimizer模型优化得到xml与bin文件后，利用OpenVINO Python API 装载、完成模型推理。
+得到模型优化得到xml与bin文件后，利用OpenVINO Python API 装载、完成模型推理。
 
 ```bash
 python inference_openvino.py --model-path .\result\pruned_modnet.xml --image-path .\data\img.jpg --device CPU
